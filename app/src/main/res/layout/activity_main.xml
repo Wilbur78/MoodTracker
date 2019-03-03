@@ -8,18 +8,10 @@
     android:id="@+id/main_menu_relative_layout">
 
     <ImageView
+        android:id="@+id/imageView1"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:id="@+id/imageView1" />
-
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/editTextContainer"
-        android:orientation="vertical"/>
+        android:src="@drawable/mood_neutral"/>
 
     <ImageButton
         android:layout_width="wrap_content"
