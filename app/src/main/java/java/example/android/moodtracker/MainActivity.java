@@ -2,7 +2,6 @@ package java.example.android.moodtracker;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -10,7 +9,6 @@ import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v4.view.GestureDetectorCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -34,11 +32,15 @@ public class MainActivity extends AppCompatActivity
     private GestureDetector mDetector;
     private ImageView mSmileyFace;
     private RelativeLayout mRelativeLayout;
-    private ImageButton mHistory;
     private AlarmManager mAlarmManager;
     private PendingIntent mPendingIntent;
     private MediaPlayer mediaPlayer;
-    public static String comment;
+
+    private SharedPreferences mSharedPrefs;
+    private String todaysComment;
+    private int moodIndex;
+    private int currentDay;
+
     public static final int [] [] moodList = {
             {R.color.faded_red,
                     R.color.warm_grey,
@@ -50,8 +52,6 @@ public class MainActivity extends AppCompatActivity
             R.drawable.mood_neutral,
             R.drawable.mood_happy,
             R.drawable.mood_ecstatic}};
-    public static int moodIndex = 3;
-    SharedPreferences mSettings;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,21 +61,15 @@ public class MainActivity extends AppCompatActivity
 
         mSmileyFace = findViewById(R.id.imageView1);
         mRelativeLayout = findViewById(R.id.main_menu_relative_layout);
-        mHistory = findViewById(R.id.moodHistory);
+        ImageButton mHistory = findViewById(R.id.moodHistory);
+
         mDetector = new GestureDetector (this, this);
-        findViewById(R.id.main_menu_relative_layout).setOnTouchListener(this);
+        mSharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
+        currentDay = mSharedPrefs.getInt(SharedPrefsKeys.KEY_CURRENT_DAY, 1);
+        moodIndex = mSharedPrefs.getInt(SharedPrefsKeys.KEY_CURRENT_MOOD, 3);
+        todaysComment = mSharedPrefs.getString(SharedPrefsKeys.KEY_CURRENT_COMMENT, "");
 
-        mSettings = getApplicationContext().getSharedPreferences("Preference", MODE_PRIVATE);
-
-        mSettings.registerOnSharedPreferenceChangeListener(
-                new SharedPreferences.OnSharedPreferenceChangeListener() {
-                    @Override
-                    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-                        mSettings.getInt("Preference", moodIndex);
-                    }
-                }
-        );
 
         ImageButton btnShow = findViewById(R.id.btnShow);
         btnShow.setOnClickListener(new OnClickListener() {
@@ -89,13 +83,15 @@ public class MainActivity extends AppCompatActivity
                         .setPositiveButton("Submit", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                comment = editText.getText().toString();
+                                todaysComment = editText.getText().toString();
                                 dialog.dismiss();
+
+                                SharedPrefsKeys.saveCurrentComment(editText.getText().toString(),
+                                        currentDay, mSharedPrefs);
 
                                 Toast.makeText(MainActivity.this,
                                         "Submission Saved",
                                         Toast.LENGTH_LONG).show();
-
                             }
                         });
 
@@ -116,16 +112,13 @@ public class MainActivity extends AppCompatActivity
 
         mHistory.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, MoodHistory.class);
                 startActivity(intent);
             }
         });
     }
 
-    public void  setEmptyComment() {
-        comment = "";
-    }
 
     public void getSound(int sound) {
         mediaPlayer = MediaPlayer.create(this, sound);
@@ -139,12 +132,16 @@ public class MainActivity extends AppCompatActivity
         cal.set(Calendar.SECOND, 0);
         cal.add(Calendar.DATE, 1);
 
-        Intent alarmIntent = new Intent(context, MoodAlarm.class);
-        mPendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, 0);
+        Intent alarmIntent = new Intent(context, MoodReceiver.class);
+        mPendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
         mAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
-        mAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP,
-                cal.getTimeInMillis(), AlarmManager.INTERVAL_DAY, mPendingIntent);
+        mAlarmManager.setInexactRepeating(AlarmManager
+                        .RTC_WAKEUP,
+                cal.getTimeInMillis(),
+                AlarmManager.INTERVAL_DAY,
+                mPendingIntent);
     }
 
     @Override
@@ -177,23 +174,18 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    private void prefEdit() {
-        SharedPreferences.Editor editor = mSettings.edit();
-        editor.putInt("Mood Index Value", moodIndex);
-        editor.apply();
-    }
-
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
         Log.d(TAG, "onFling: started");
 
         if (moodIndex < 4 && e1.getY() - e2.getY() > 50) {
             moodIndex++;
-            getSound();
+
             mSmileyFace.setImageResource(moodList[1][moodIndex]);
             mRelativeLayout.setBackgroundColor(getResources().getColor(moodList[0][moodIndex]));
 
-            prefEdit();
+            SharedPrefsKeys.saveCurrentMood(moodIndex, currentDay, mSharedPrefs);
+//            getSound();
 
             Toast.makeText(MainActivity.this, "You swiped up :D",
                     Toast.LENGTH_SHORT).show(); return true;
@@ -202,13 +194,16 @@ public class MainActivity extends AppCompatActivity
 
             Log.d(TAG, "onFling: called");
             moodIndex--;
+
             mSmileyFace.setImageResource(moodList[1][moodIndex]);
             mRelativeLayout.setBackgroundColor(getResources().getColor(moodList[0][moodIndex]));
 
-            prefEdit();
+            SharedPrefsKeys.saveCurrentMood(moodIndex, currentDay, mSharedPrefs);
+//            getSound();
 
             Toast.makeText(MainActivity.this, "You swiped down :/",
                     Toast.LENGTH_SHORT).show(); return true;
+
 
         } else {
 
