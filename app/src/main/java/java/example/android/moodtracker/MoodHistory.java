@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -12,111 +13,43 @@ import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 
+//Initiating functionality of the RecyclerView/Adapter in the History screen of the app (mood_history.xml)
 public class MoodHistory extends AppCompatActivity {
 
-    public static final int NUMBER_ITEM = 8;
-    public static RecyclerView mRecyclerView;
+    private RecyclerView rvMoods;
+    private MoodAdapter moodAdapter;
 
-    private RecyclerView.Adapter mAdapter;
-    private RecyclerView.LayoutManager mLayoutManager;
-    public int mPreferences;
-    private static final String SHARED_PREFERENCES = "SHARED_PREFERENCES";
-    private static final String MOOD_DATA = "MOOD_DATA";
+    private SharedPreferences mSharedPrefs;
+    private int currentDay;
 
-    public static ArrayList<Integer> mMoodItem;
-    public static ArrayList<String> mComment;
-
-    public SharedPreferences preferences;
+    //Values which will correspond to the positions of the moods and colors array in the UtilValues class.
+    //Saved in Shared Preferences as that days mood along with its comment and then added to the adapter
+    private ArrayList<Integer> moods = new ArrayList<>();
+    private ArrayList<String> comments = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.recycler_view);
-        mRecyclerView = findViewById(R.id.recycler_layout);
 
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        mRecyclerView.setHasFixedSize(true);
+        mSharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        currentDay = mSharedPrefs.getInt(SharedPrefsKeys.KEY_CURRENT_DAY, 1);
 
+        //Identifying the xml file ID for the RecyclerView and its layout manager (linear, in this case)
+        rvMoods = findViewById(R.id.recyclerview_mood_list);
+        rvMoods.setLayoutManager(new LinearLayoutManager(
+                this,
+                LinearLayoutManager.VERTICAL,
+                true));
 
-        mLayoutManager = new LinearLayoutManager(this);
-        mRecyclerView.setLayoutManager(mLayoutManager);
-
-        mAdapter = new MyAdapter(mPreferences);
-        mRecyclerView.setAdapter(mAdapter);
-    }
-
-    public static void saveData(Context activity, ListMoodItem moodItem) {
-        SharedPreferences sharedPreferences = activity.getSharedPreferences("Preference", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        Gson gson = new Gson();
-        String json = gson.toJson(moodItem);
-        editor.putString(MOOD_DATA, json);
-        editor.apply();
-    }
-
-    public static void loadData(Context activity, ListMoodItem moodItem) {
-        SharedPreferences sharedPreferences = activity.getSharedPreferences(SHARED_PREFERENCES, MODE_PRIVATE);
-        Gson gson = new Gson();
-        String json = sharedPreferences.getString(MOOD_DATA, null);
-        Type type = new TypeToken<ArrayList<ListMoodItem>>() {
-        }.getType();
-        mMoodItem = gson.fromJson(json, type);
-
-        if (mMoodItem == null) {
-            mMoodItem = new ArrayList<>();
-        }
-    }
-
-    public boolean onOptionsItemSelected(MenuItem item) {
-        Intent myIntent = new Intent(getApplicationContext(),
-                MainActivity.class);
-        startActivityForResult(myIntent, 0);
-        return true;
-    }
-
-    public class MyAdapter extends
-            RecyclerView.Adapter<MyAdapter.MyViewHolder> {
-        int preferences;
-
-        class MyViewHolder extends
-                RecyclerView.ViewHolder {
-            LinearLayout mLinearLayout;
-
-            MyViewHolder(LinearLayout v) {
-                super(v);
-                mLinearLayout = v;
-            }
-        }
-
-        MyAdapter(int preferences) {
-            preferences = mPreferences;
-        }
-
-        @Override
-        public MyAdapter.MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-
-            LinearLayout v = (LinearLayout) LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.recycler_view, parent, false);
-
-            MyViewHolder vh = new MyViewHolder(v);
-            return vh;
-        }
-
-        @Override
-        public void onBindViewHolder(MyViewHolder holder, int position) {
-
-            holder.mLinearLayout.setBackgroundColor(getResources().getColor(R.color.warm_grey));
-        }
-
-        @Override
-        public int getItemCount() {
-            return mPreferences;
+        // 'i' being the beginning value and 'dayIndex' being the number of items represented in the RecyclerView
+        //based on the current day o =f the week
+        for (int i = 0; i < currentDay; i++) {
+            moods.add(mSharedPrefs.getInt("KEY_MOOD" + i, 3));
+            //Adds that days mood and comment as a new item to the adapter
+            comments.add(mSharedPrefs.getString("KEY_COMMENT" + i, ""));
         }
     }
 }

@@ -4,7 +4,7 @@
         <item>@drawable/mood_ecstatic</item>
         <item>@drawable/mood_happy</item>
         <item>@drawable/mood_neutral</item>
-        <item>@drawable/mood_kind_of_sad</item>
+        <item>@drawable/mood_kinda_sad</item>
         <item>@drawable/mood_sad</item>
     </array>
 </resources>

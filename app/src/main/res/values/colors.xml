@@ -4,9 +4,10 @@
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
 
-    <color name="faded_red">#ffde3c50</color>
-    <color name="warm_grey">#ff9b9b9b</color>
-    <color name="cornflower_blue_65">#a5468ad9</color>
-    <color name="light_sage">#ffb8e986</color>
-    <color name="banana_yellow">#fff9ec4f</color>
+    <color name="banana_yellow">#F8EC50</color>
+    <color name="light_sage">#B8E986</color>
+    <color name="cornflower_blue">#468AD9</color>
+    <color name="warm_grey">#9B9B9B</color>
+    <color name="faded_red">#DE3C50</color>
+
 </resources>

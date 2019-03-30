@@ -20,20 +20,24 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
-
 import java.util.Calendar;
-
 import static android.view.View.OnClickListener;
+
+//This file represents the functionality of the opening screen of the application, where the user will:
+//select moods, add comments, and access their weekly mood history
 
 public class MainActivity extends AppCompatActivity
         implements GestureDetector.OnGestureListener, View.OnTouchListener {
 
     private static final String TAG = "Gestures";
-    private GestureDetector mDetector;
+
     private ImageView mSmileyFace;
     private RelativeLayout mRelativeLayout;
+
     private AlarmManager mAlarmManager;
     private PendingIntent mPendingIntent;
+
+    private GestureDetector mDetector;
     private MediaPlayer mediaPlayer;
 
     private SharedPreferences mSharedPrefs;
@@ -41,38 +45,31 @@ public class MainActivity extends AppCompatActivity
     private int moodIndex;
     private int currentDay;
 
-    public static final int [] [] moodList = {
-            {R.color.faded_red,
-                    R.color.warm_grey,
-                    R.color.cornflower_blue_65,
-                    R.color.light_sage,
-                    R.color.banana_yellow},
-            {R.drawable.mood_sad,
-            R.drawable.mood_kind_of_sad,
-            R.drawable.mood_neutral,
-            R.drawable.mood_happy,
-            R.drawable.mood_ecstatic}};
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
+        //Calling the above instantiated elements of the starting page/activity_main.xml
         mSmileyFace = findViewById(R.id.imageView1);
         mRelativeLayout = findViewById(R.id.main_menu_relative_layout);
-        ImageButton mHistory = findViewById(R.id.moodHistory);
+        ImageButton btnComment = findViewById(R.id.btnComment);
+        ImageButton btnHistory = findViewById(R.id.moodHistory);
 
+        //Gesture detector set for this screen to be referenced below along with the necessary methods
         mDetector = new GestureDetector (this, this);
+        //Gets default preferences to initiate their implementation into the app as personalizeable in accessible
         mSharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
+        //Retrieving each index, for the current day, mood, and comment respectively, from preferences to be
+        //saved whenever it is changed during the course of a day
         currentDay = mSharedPrefs.getInt(SharedPrefsKeys.KEY_CURRENT_DAY, 1);
         moodIndex = mSharedPrefs.getInt(SharedPrefsKeys.KEY_CURRENT_MOOD, 3);
         todaysComment = mSharedPrefs.getString(SharedPrefsKeys.KEY_CURRENT_COMMENT, "");
 
+        scheduleAlarm();
 
-        ImageButton btnShow = findViewById(R.id.btnShow);
-        btnShow.setOnClickListener(new OnClickListener() {
+        btnComment.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
@@ -85,7 +82,8 @@ public class MainActivity extends AppCompatActivity
                             public void onClick(DialogInterface dialog, int which) {
                                 todaysComment = editText.getText().toString();
                                 dialog.dismiss();
-
+                                //After the user types a comment and presses "Submit", the "saveCurrentComment" method is called
+                                //from the SharedPrefsKey class (see said class for method description)
                                 SharedPrefsKeys.saveCurrentComment(editText.getText().toString(),
                                         currentDay, mSharedPrefs);
 
@@ -110,7 +108,9 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        mHistory.setOnClickListener(new View.OnClickListener() {
+//Button which when pressed brings the user to his history activity, which displays his mood
+        //over the last week along with their respective comments
+        btnHistory.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, MoodHistory.class);
@@ -121,24 +121,28 @@ public class MainActivity extends AppCompatActivity
 
 
     public void getSound(int sound) {
-        mediaPlayer = MediaPlayer.create(this, sound);
+        mediaPlayer = MediaPlayer.create(this, UtilValues.moodMediaArray[moodIndex]);
         mediaPlayer.start();
     }
 
-    private void  scheduleAlarm(Context context) {
+    private void  scheduleAlarm() {
+        //Schedules alarm to be called at midnight each night
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
         cal.add(Calendar.DATE, 1);
 
-        Intent alarmIntent = new Intent(context, MoodReceiver.class);
-        mPendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent,
+        Intent alarmIntent = new Intent(this, MoodReceiver.class);
+        mPendingIntent = PendingIntent.getBroadcast(
+                this,
+                0,
+                alarmIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
         mAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        //AlarmManager is triggered when the time specified in the scheduleAlarm method is reached
 
-        mAlarmManager.setInexactRepeating(AlarmManager
-                        .RTC_WAKEUP,
+        mAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP,
                 cal.getTimeInMillis(),
                 AlarmManager.INTERVAL_DAY,
                 mPendingIntent);
@@ -152,63 +156,70 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onDown(MotionEvent e) {
+        //Method is unused in this project, but is necessary to add to avoid errors with relation to
+        //GestureDetector compatibility
         return false;
     }
 
     @Override
     public void onShowPress(MotionEvent e) {
+        //Method is unused in this project, but is necessary to add to avoid errors with relation to
+        //GestureDetector compatibility
     }
 
     @Override
     public boolean onSingleTapUp(MotionEvent e) {
+        //Method is unused in this project, but is necessary to add to avoid errors with relation to
+        //GestureDetector compatibility
         return false;
     }
 
     @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+        //Method is unused in this project, but is necessary to add to avoid errors with relation to
+        //GestureDetector compatibility
         return false;
     }
 
     @Override
     public void onLongPress(MotionEvent e) {
-
+        //Method is unused in this project, but is necessary to add to avoid errors with relation to
+        //GestureDetector compatibility
     }
 
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
         Log.d(TAG, "onFling: started");
-
         if (moodIndex < 4 && e1.getY() - e2.getY() > 50) {
             moodIndex++;
 
-            mSmileyFace.setImageResource(moodList[1][moodIndex]);
-            mRelativeLayout.setBackgroundColor(getResources().getColor(moodList[0][moodIndex]));
-
+            mSmileyFace.setImageResource(UtilValues.moodImagesArray[moodIndex]);
+            mRelativeLayout.setBackgroundColor(getResources().getColor(UtilValues.moodColorsArray[moodIndex]));
             SharedPrefsKeys.saveCurrentMood(moodIndex, currentDay, mSharedPrefs);
-//            getSound();
-
+            getSound(moodIndex);
+            //SharedPrefsKey class saveCurrentMood called to save the moodIndex in Shared Preferences
+            // along with the current day. The UI is updated to the respective image and color and
+            //a toast is displayed acknowledging the direction the user swiped
             Toast.makeText(MainActivity.this, "You swiped up :D",
                     Toast.LENGTH_SHORT).show(); return true;
 
         } else if (moodIndex > 0 && e2.getY() - e1.getY() > 50) {
-
             Log.d(TAG, "onFling: called");
             moodIndex--;
 
-            mSmileyFace.setImageResource(moodList[1][moodIndex]);
-            mRelativeLayout.setBackgroundColor(getResources().getColor(moodList[0][moodIndex]));
-
+            mSmileyFace.setImageResource(UtilValues.moodImagesArray[moodIndex]);
+            mRelativeLayout.setBackgroundColor(getResources().getColor(UtilValues.moodColorsArray[moodIndex]));
             SharedPrefsKeys.saveCurrentMood(moodIndex, currentDay, mSharedPrefs);
-//            getSound();
-
+            getSound(moodIndex);
+            //SharedPrefsKey class saveCurrentMood called to save the moodIndex in Shared Preferences
+            // along with the current day. The UI is updated to the respective image and color and
+            //a toast is displayed acknowledging the direction the user swiped
             Toast.makeText(MainActivity.this, "You swiped down :/",
                     Toast.LENGTH_SHORT).show(); return true;
-
 
         } else {
 
             return true;
-
         }
     }
 }
