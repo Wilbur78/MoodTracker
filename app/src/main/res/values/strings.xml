@@ -2,7 +2,6 @@
     <string name="app_name">Mood Tracker</string>
     <string name="enter_something">How do you feel right now?</string>
     <string name="show_text">Show Text</string>
-    <string name="Cancel">Cancel</string>
     <string name="shared_preferences">Mood History</string>
 
     <!-- Strings related to Settings -->

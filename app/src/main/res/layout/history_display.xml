@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="100dp"
+    android:background="@color/warm_grey">
+
+    <FrameLayout
+        android:id="@+id/frame_layout_left"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="0.2"
+        android:padding="16dp"
+        style=""
+        android:background="@drawable/mood_ecstatic">
+
+        <TextView
+            android:id="@+id/textview_days_ago"
+            android:layout_gravity="start|center_vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:text="Five days ago"/>
+
+        <ImageButton
+            android:id="@+id/btn_show_comment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|center_vertical"
+            android:background="@null"
+            android:src="@drawable/ic_history_black"/>
+
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/frame_layout_right"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="0.8"
+        android:background="#c1c4cc"/>
+
+</LinearLayout>

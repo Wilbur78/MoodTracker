@@ -39,17 +39,19 @@ public class MoodHistory extends AppCompatActivity {
 
         //Identifying the xml file ID for the RecyclerView and its layout manager (linear, in this case)
         rvMoods = findViewById(R.id.recyclerview_mood_list);
-        rvMoods.setLayoutManager(new LinearLayoutManager(
-                this,
-                LinearLayoutManager.VERTICAL,
-                true));
+        rvMoods.setLayoutManager(new LinearLayoutManager(this,
+                LinearLayoutManager.VERTICAL, true));
 
         // 'i' being the beginning value and 'dayIndex' being the number of items represented in the RecyclerView
-        //based on the current day o =f the week
+        //based on the current day of the week
         for (int i = 0; i < currentDay; i++) {
             moods.add(mSharedPrefs.getInt("KEY_MOOD" + i, 3));
             //Adds that days mood and comment as a new item to the adapter
             comments.add(mSharedPrefs.getString("KEY_COMMENT" + i, ""));
         }
+
+        //Creating a new instance of the adapter class and setting it as the adapter for the specified RecyclerView
+        moodAdapter = new MoodAdapter(this, moods, comments);
+        rvMoods.setAdapter(moodAdapter);
     }
 }
